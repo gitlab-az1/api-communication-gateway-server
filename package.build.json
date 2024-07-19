@@ -1,0 +1,11 @@
+{
+  "name": "api-communication-gateway-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "AGPL-3.0-only",
+  "dependencies": {
+    "@ts-overflow/async": "^1.0.0",
+    "@ts-overflow/node-framework": "^1.0.1",
+    "next-math": "^1.0.1"
+  }
+}
