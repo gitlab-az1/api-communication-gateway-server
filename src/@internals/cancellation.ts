@@ -65,10 +65,7 @@ class MutableToken extends Disposable implements ICancellationToken {
 
       if(disposables && Array.isArray(disposables)) {
         disposables.push(shortcutEvent(listener, thisArgs));
-        
-        for(const d of disposables) {
-          super._register(d);
-        }
+        disposables.forEach(d => void super._register(d));
       } else return listener.call(thisArgs, void 0);
     }) as CancellationRequestListener;
   }

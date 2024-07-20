@@ -101,7 +101,7 @@ export class ChunkStream<TEvents extends Record<string, any> = ChunkStreamDefaul
     return Buffer.concat(this[$chunks]);
   }
 
-  public chunks(): Buffer[] {
+  public chunks(): readonly Buffer[] {
     if(this[$disposed] === true) {
       throw new Exception('Cannot return stream after it has been disposed', 'ERR_STREAM_BUFFER_UNDERFLOW');
     }
@@ -117,7 +117,7 @@ export class ChunkStream<TEvents extends Record<string, any> = ChunkStreamDefaul
       throw err;
     }
 
-    return [ ...this[$chunks] ];
+    return Object.freeze([ ...this[$chunks] ] as const);
   }
 
   public pipe(source: Readable, token?: ICancellationToken, onend?: () => void): void {
@@ -279,3 +279,5 @@ const _buffer = (chunk: any): Buffer => {
 
   throw new Exception('Received non-buffer chunk from stream', 'ERR_STREAM_INVALID_CHUNK');
 };
+
+export default ChunkStream;

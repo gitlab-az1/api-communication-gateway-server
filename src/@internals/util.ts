@@ -1,3 +1,6 @@
+import { PrimitiveDataType } from './types';
+
+
 export function isIterableIterator<T>(value: any): value is IterableIterator<T> {
   return typeof value === 'object' && value !== null && typeof value[Symbol.iterator] === 'function' && typeof value.next === 'function';
 }
@@ -123,3 +126,73 @@ export function isBigInt(x: any): boolean {
     return false; // conversion to BigInt failed, surely it is not a BigInt
   }
 }
+
+
+export function version(): string {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // return require('../../package.json').version;
+
+  return '1.0.0';
+}
+
+
+export function __$typeof(x: any): PrimitiveDataType {
+  switch(typeof x) {
+    case 'string':
+      return PrimitiveDataType.String;
+    case 'number':
+      return Number.isInteger(x) ? PrimitiveDataType.Integer : PrimitiveDataType.Float;
+    case 'boolean':
+      return PrimitiveDataType.Boolean;
+    case 'bigint':
+      return PrimitiveDataType.Bigint;
+    case 'function':
+      return PrimitiveDataType.Function;
+    case 'object':
+      return Array.isArray(x) ? PrimitiveDataType.Array : PrimitiveDataType.Object;
+    case 'symbol':
+      return PrimitiveDataType.Symbol;
+    case 'undefined':
+      return PrimitiveDataType.Undefined;
+  }
+}
+
+
+export function dumpBinary(data: Uint8Array, includeAddresses: boolean = true): string {
+  const o = [] as string[];
+  o.push(Buffer.isBuffer(data) ? `Buffer[${data.byteLength}]\n` : `Uint8Array[${data.byteLength}]\n`);
+
+  for(let i = 0; i < data.length; i++) {
+    o.push(includeAddresses === true ? `0x${i.toString(16).toUpperCase()}: 0x${data[i].toString(16).toUpperCase()}` : `0x${data[i].toString(16).toUpperCase()}`);
+  }
+
+  return o.join('\n');
+}
+
+
+export const successHttpStatus: readonly number[] = Object.freeze([
+  200,
+  201,
+  202,
+  203,
+  204,
+  205,
+  206,
+  207,
+  208,
+  226,
+] as const);
+
+export const primitiveDataTypeValues: readonly number[] = Object.freeze([
+  0xF,
+  0x10,
+  0x11,
+  0x12,
+  0x13,
+  0x14,
+  0x15,
+  0x16,
+  0x17,
+  0x18,
+  0x19,
+] as const);

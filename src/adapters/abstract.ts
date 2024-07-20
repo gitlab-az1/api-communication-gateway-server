@@ -1,3 +1,4 @@
+// @ts-expect-error The generic 'TContext' is nver used
 export interface Adapter<TContext> { }
 
 

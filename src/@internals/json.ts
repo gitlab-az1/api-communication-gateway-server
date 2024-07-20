@@ -22,40 +22,40 @@ export function jsonSafeParser<T>(data: string): Either<Error, T> {
  * Safely stringify JSON data
  * 
  * @param {*} data The data to stringify
- * @returns {string} A JSON string or null if an error occurred
+ * @returns {string} A JSON string or the occurred error
  */
-export function jsonSafeStringify<T>(data: T): string | null;
+export function jsonSafeStringify<T>(data: T): Either<Error, string>;
 
 /**
  * Safely stringify JSON data
  * 
  * @param {*} data The data to stringify
- * @returns {string} A JSON string or null if an error occurred
+ * @returns {string} A JSON string or the occurred error
  */
-export function jsonSafeStringify<T>(data: T, replacer: ((this: any, key: string, value: any) => any), space?: string | number): string | null;
+export function jsonSafeStringify<T>(data: T, replacer: ((this: any, key: string, value: any) => any), space?: string | number): Either<Error, string>;
 /**
  * Safely stringify JSON data
  * 
  * @param {*} data The data to stringify
- * @returns {string} A JSON string or null if an error occurred
+ * @returns {string} A JSON string or the occurred error
  */
-export function jsonSafeStringify<T>(data: T, replacer?: (string | number)[] | null, space?: string | number): string | null;
+export function jsonSafeStringify<T>(data: T, replacer?: (string | number)[] | null, space?: string | number): Either<Error, string>;
 
 /**
  * Safely stringify JSON data
  * 
  * @param {*} data The data to stringify
- * @returns {string} A JSON string or null if an error occurred
+ * @returns {string} A JSON string or the occurred error
  */
-export function jsonSafeStringify<T>(data: T, replacer?: ((this: any, key: string, value: any) => any) | (string | number)[] | null, space?: string | number): string | null {
-  if(typeof data !== 'object' && !Array.isArray(data)) return JSON.stringify(data);
+export function jsonSafeStringify<T>(data: T, replacer?: ((this: any, key: string, value: any) => any) | (string | number)[] | null, space?: string | number): Either<Error, string> {
+  if(typeof data !== 'object') return right(JSON.stringify(data));
 
   try {
     const safeData = Array.isArray(data) ? _replaceArrayCirculars(data) : _replaceObjectCirculars(data);
-    return JSON.stringify(safeData, replacer as unknown as any, space);
+    return right(JSON.stringify(safeData, replacer as unknown as any, space));
   } catch (err: any) {
-    console.warn(err);
-    return null;
+    // console.warn(err);
+    return left(err);
   }
 }
 
