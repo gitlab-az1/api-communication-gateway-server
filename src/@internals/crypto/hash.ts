@@ -1,4 +1,4 @@
-import { hmac } from 'cryptx-sdk/hash';
+import { hash, hmac } from 'cryptx-sdk/hash';
 
 import { Exception } from '../errors';
 
@@ -27,4 +27,23 @@ export async function hashObject(
     algorithm as 'sha1' | 'sha256' | 'sha512', 'bytearray');
 
   return Buffer.from(result);
+}
+
+
+export function sha256(input: Uint8Array | string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    hash(input, 'sha256', 'bytearray').then(u8 => {
+      resolve(Buffer.from(u8));
+      u8 = null!;
+    }, reject);
+  });
+}
+
+export function sha512(input: Uint8Array | string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    hash(input, 'sha512', 'bytearray').then(u8 => {
+      resolve(Buffer.from(u8));
+      u8 = null!;
+    }, reject);
+  });
 }

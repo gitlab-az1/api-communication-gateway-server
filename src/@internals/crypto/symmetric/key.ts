@@ -48,6 +48,7 @@ export class SymmetricKey {
       ArrayBuffer.isView(key)
     ) {
       this[$key] = Buffer.from(key.buffer, key.byteOffset, key.byteLength);
+      key = null!;
     } else if(typeof key === 'string') {
       this[$key] = (
         !!keyEncoding && Buffer.isEncoding(keyEncoding) ?
@@ -59,6 +60,7 @@ export class SymmetricKey {
       key instanceof SharedArrayBuffer
     ) {
       this[$key] = Buffer.from(key);
+      key = null!;
     } else {
       throw new Exception(`Cannot create a symmetric key from the provided key 'typeof ${typeof key}'`, 'ERR_INVALID_TYPE');
     }
@@ -123,3 +125,5 @@ export class SymmetricKey {
     return this[$key].subarray(0, this[$keyLength]);
   }
 }
+
+export default SymmetricKey;

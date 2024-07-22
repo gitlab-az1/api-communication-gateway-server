@@ -93,6 +93,7 @@ export function decompress(payload: Buffer): Promise<Buffer> {
           payload = null!;
 
           resolve(b);
+          b = null!;
         });
       });
     case COMPRESSION_ALGORITHM.GZIP:
@@ -103,6 +104,7 @@ export function decompress(payload: Buffer): Promise<Buffer> {
           payload = null!;
 
           resolve(b);
+          b = null!;
         });
       });
     default:
@@ -124,10 +126,10 @@ export function isCompressedBuffer(input: Uint8Array): boolean {
 }
 
 
-export function compressionAlgorithms(): readonly [string, number][] {
+export function compressionAlgorithms(): readonly (readonly [string, number])[] {
   return Object.freeze([
-    [ 'plain', COMPRESSION_ALGORITHM.PLAIN ],
-    [ 'gzip', COMPRESSION_ALGORITHM.GZIP ],
-    [ 'deflate', COMPRESSION_ALGORITHM.DEFLATE ],
+    Object.freeze( [ 'plain', COMPRESSION_ALGORITHM.PLAIN ] as const),
+    Object.freeze( [ 'gzip', COMPRESSION_ALGORITHM.GZIP ] as const),
+    Object.freeze( [ 'deflate', COMPRESSION_ALGORITHM.DEFLATE ] as const),
   ] as const);
 }

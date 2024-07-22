@@ -1,7 +1,11 @@
-// @ts-expect-error The generic 'TContext' is nver used
-export interface Adapter<TContext> { }
+import type { HttpHeaders } from '@ts-overflow/node-framework/types';
 
 
-export abstract class AbstractAdapter<T> implements Adapter<T> { }
+export interface Adapter<TContext> {
+  readonly _context: TContext;
+  readonly ifaceName: string;
 
-export default AbstractAdapter;
+  headers(): HttpHeaders;
+  send(status?: number): Promise<number>;
+  sendToWeb(status?: number): Promise<number>;
+}

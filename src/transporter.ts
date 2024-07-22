@@ -4,14 +4,15 @@ import { Readable } from 'stream';
 import { Exception } from './@internals/errors';
 import { ChunkStream } from './@internals/stream';
 import AES from './@internals/crypto/symmetric/aes';
-import { hashObject } from './@internals/crypto/hash';
 import { MAX_CHUNK_SIZE } from './@internals/constants';
+import { hashObject, sha512 } from './@internals/crypto/hash';
 import { SymmetricKey } from './@internals/crypto/symmetric/key';
 import { type SymmetricEncryptionAlgorithm } from './@internals/crypto/symmetric';
 
 
 export interface AbstractTransporter {
   readonly readableStream: Readable;
+  readonly byteSize: number;
 
   chunks(): readonly Buffer[];
   return(): Buffer;
@@ -27,7 +28,7 @@ export class Transporter extends ChunkStream implements AbstractTransporter {
     _maxBlockSize: number = MAX_CHUNK_SIZE // eslint-disable-line comma-dangle
   ) {
     super({ onListenerError: console.error });
-    this.#maxLength = _maxBlockSize ?? MAX_CHUNK_SIZE;
+    this.#maxLength = _maxBlockSize || MAX_CHUNK_SIZE;
 
     if(_payload.byteLength <= this.#maxLength) {
       super.acceptChunk(_payload);
@@ -36,12 +37,13 @@ export class Transporter extends ChunkStream implements AbstractTransporter {
 
       while(offset < _payload.byteLength) {
         const end = math.min(offset + this.#maxLength, _payload.byteLength);
-        const chunk = _payload.subarray(offset, end);
+        super.acceptChunk(_payload.subarray(offset, end));
 
-        super.acceptChunk(chunk);
         offset += this.#maxLength;
       }
     }
+
+    _payload = null!;
 
     super.end();
     let chunks = super.chunks();
@@ -75,6 +77,10 @@ export class Transporter extends ChunkStream implements AbstractTransporter {
     return this.#stream;
   }
 
+  public get byteSize(): number {
+    return super.byteLength;
+  }
+
   public override end(): Buffer {
     if(!this.#stream.destroyed) {
       this.#stream.destroy();
@@ -97,6 +103,7 @@ export class EncryptedTransporter {
   #ready: boolean = false;
   #signature: Buffer | null = null;
   #transporter: Transporter | null = null;
+  #algorithmIdentifier: Buffer | null = null;
 
   readonly #maxLength: number;
   readonly #props: EncryptedTransporterProps;
@@ -108,7 +115,7 @@ export class EncryptedTransporter {
     _algorithm: SymmetricEncryptionAlgorithm = 'aes-256-cbc',
     _maxBlockSize?: number // eslint-disable-line comma-dangle
   ) {
-    this.#maxLength = _maxBlockSize ?? MAX_CHUNK_SIZE;
+    this.#maxLength = _maxBlockSize || MAX_CHUNK_SIZE;
 
     this.#props = {
       originalPayload: Buffer.isBuffer(_payload) ? _payload : Buffer.from(_payload),
@@ -120,6 +127,14 @@ export class EncryptedTransporter {
 
   public get maxLength(): number {
     return this.#maxLength;
+  }
+
+  public get algorithm(): string {
+    if(!this.#ready || !this.#algorithmIdentifier) {
+      throw new Exception('Cannot get the algorithm identifier before initialize the instance', 'ERR_UNSUPPORTED_OPERATION');
+    }
+
+    return this.#algorithmIdentifier.toString('base64');
   }
 
   public begin(): Promise<this> {
@@ -163,6 +178,8 @@ export class EncryptedTransporter {
 
     this.#transporter = new Transporter((await aes.encrypt()), this.#maxLength);
     this.#props.originalPayload = null!;
+
+    this.#algorithmIdentifier = await sha512(this.#props.algorithm);
 
     this.#ready = true;
     return this;
