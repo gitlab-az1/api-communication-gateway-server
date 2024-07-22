@@ -2,6 +2,8 @@
   "name": "api-communication-gateway-server",
   "version": "1.0.0",
   "main": "dist/index.js",
+  "repository": "https://github.com/gitlab-az1/api-communication-gateway-server.git",
+  "author": "gitlab-az1 <gitlab.az1@gmail.com>",
   "license": "AGPL-3.0-only",
   "scripts": {
     "build": "tsc --emitDeclarationOnly && babel src --extensions \".js,.ts\" --out-dir dist --copy-files --no-copy-ignored && node ./post-build.js",
