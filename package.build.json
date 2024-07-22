@@ -1,6 +1,6 @@
 {
   "name": "api-communication-gateway-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "index.js",
   "repository": "https://github.com/gitlab-az1/api-communication-gateway-server.git",
   "author": "gitlab-az1 <gitlab.az1@gmail.com>",
