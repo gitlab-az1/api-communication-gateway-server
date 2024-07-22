@@ -98,7 +98,7 @@ function _replaceObjectCirculars(obj: any): any {
       } else if(_isCircularObject(obj[prop])) {
         safeValues[prop] = `[Circular *${++circularCount}]`;
       } else {
-        safeValues[prop] = _replaceObjectCirculars(obj[prop]);
+        safeValues[prop] = obj[prop] === null ? null : _replaceObjectCirculars(obj[prop]);
       }
     } else {
       safeValues[prop] = obj[prop];
