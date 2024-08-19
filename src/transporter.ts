@@ -2,6 +2,7 @@ import math from 'next-math';
 import { Readable } from 'stream';
 
 import { Exception } from './@internals/errors';
+import { unsafeMask } from './@internals/buffer';
 import { ChunkStream } from './@internals/stream';
 import AES from './@internals/crypto/symmetric/aes';
 import { MAX_CHUNK_SIZE } from './@internals/constants';
@@ -25,10 +26,21 @@ export class Transporter extends ChunkStream implements AbstractTransporter {
 
   public constructor(
     _payload: Buffer,
+    _mask?: Uint8Array,
     _maxBlockSize: number = MAX_CHUNK_SIZE // eslint-disable-line comma-dangle
   ) {
     super({ onListenerError: console.error });
     this.#maxLength = _maxBlockSize || MAX_CHUNK_SIZE;
+
+    // eslint-disable-next-line no-extra-boolean-cast
+    if(!!_mask) {
+      let tmp = Buffer.alloc(_payload.byteLength);
+      unsafeMask(_payload, _mask as Buffer, tmp, 0, _payload.length);
+
+      _payload = tmp;
+      _mask = null!;
+      tmp = null!;
+    }
 
     if(_payload.byteLength <= this.#maxLength) {
       super.acceptChunk(_payload);
@@ -137,8 +149,8 @@ export class EncryptedTransporter {
     return this.#algorithmIdentifier.toString('base64');
   }
 
-  public begin(): Promise<this> {
-    return this.#DoBeginTransporter();
+  public begin(mask?: Uint8Array): Promise<this> {
+    return this.#DoBeginTransporter(mask);
   }
 
   public get transporter(): Transporter {
@@ -157,7 +169,7 @@ export class EncryptedTransporter {
     return this.#signature.toString('base64');
   }
 
-  async #DoBeginTransporter(): Promise<this> {
+  async #DoBeginTransporter(mask?: Uint8Array): Promise<this> {
     if(this.#ready) {
       throw new Exception('Cannot begin a encrypted transporter more than once', 'ERR_UNSUPPORTED_OPERATION');
     }
@@ -176,7 +188,7 @@ export class EncryptedTransporter {
     const aes = new AES(sk, { variant: this.#props.algorithm });
     aes.update(this.#props.originalPayload);
 
-    this.#transporter = new Transporter((await aes.encrypt()), this.#maxLength);
+    this.#transporter = new Transporter((await aes.encrypt()), mask, this.#maxLength);
     this.#props.originalPayload = null!;
 
     this.#algorithmIdentifier = await sha512(this.#props.algorithm);
